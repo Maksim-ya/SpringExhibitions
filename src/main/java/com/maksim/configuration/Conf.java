@@ -3,7 +3,10 @@ package com.maksim.configuration;
 
 import com.maksim.model.hibernateImpl.UserDaoImpl;
 import com.maksim.service.UserService;
+import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -36,12 +39,21 @@ public class Conf {
     public UserService userService() {
         return new UserService();
     }
+    @Bean
+    public DataSource dataSource() {
+        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        dataSource.setDriverClassName(environment.getRequiredProperty("jdbc.driverClassName"));
+        dataSource.setUrl(environment.getRequiredProperty("jdbc.url"));
+        dataSource.setUsername(environment.getRequiredProperty("jdbc.username"));
+        dataSource.setPassword(environment.getRequiredProperty("jdbc.password"));
+        return dataSource;
+    }
 
     @Bean
-    public LocalSessionFactoryBean sessionFactoryBean() {
+    public LocalSessionFactoryBean sessionFactory() {
         LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
         sessionFactory.setDataSource(dataSource());
-        sessionFactory.setPackagesToScan(new String[]{"com.maksim.model"});
+        sessionFactory.setPackagesToScan(new String[]{"com.maksim.model.domain"});
         sessionFactory.setHibernateProperties(hibernateProperties());
         return sessionFactory;
     }
@@ -55,21 +67,13 @@ public class Conf {
         return properties;
     }
 
-    @Bean
-    public DataSource dataSource() {
-        DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName(environment.getRequiredProperty("jdbc.driverClassName"));
-        dataSource.setUrl(environment.getRequiredProperty("jdbc.url"));
-        dataSource.setUsername(environment.getRequiredProperty("jdbc.username"));
-        dataSource.setPassword(environment.getRequiredProperty("jdbc.password"));
-        return dataSource;
-    }
+
 
     @Bean
     @Autowired
-    public PlatformTransactionManager platformTransactionManager(LocalSessionFactoryBean sessionFactoryBean){
+    public PlatformTransactionManager platformTransactionManager(LocalSessionFactoryBean sessionFactory){
         HibernateTransactionManager platformTransactionManager = new HibernateTransactionManager();
-        platformTransactionManager.setSessionFactory(sessionFactoryBean.getObject());
+        platformTransactionManager.setSessionFactory(sessionFactory.getObject());
         // just because we using hibernate built-in datasource this property is set to false
         platformTransactionManager.setAutodetectDataSource(false);
 

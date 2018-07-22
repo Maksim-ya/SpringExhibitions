@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
     private static final Logger logger = Logger.getLogger(UserService.class);
     @Autowired
-    private  UserDao userDao;
+    private UserDao userDao;
 //    private static final UserDao userDao = DaoFactoryImpl.getInstance().getUserDao();
 //    private static final UserService USER_SERVICE = new UserService();
 //
@@ -30,15 +30,13 @@ public class UserService {
 
     @Transactional
     public boolean addUser(User user) {
-        //            session.beginTransaction();
-            userDao.addUser(user);
-//            session.getTransaction().commit();
+        userDao.addUser(user);
         user.setPassword(encryptPassword(user.getPassword()));
         logger.info(Logs.USER_REGISTER);
         return true;
     }
 
     public User checkLoginAndPassword(String login, String password) {
-        return  userDao.checkLoginAndPassword(login,encryptPassword(password));
+        return userDao.checkLoginAndPassword(login, encryptPassword(password));
     }
 }
